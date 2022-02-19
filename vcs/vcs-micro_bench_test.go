@@ -20,7 +20,7 @@ func BenchmarkPrunedVCSMicro(b *testing.B) {
 //	ell := []uint8{10, 22, 24, 26, 28, 30}
 	ell := []uint8{30}
 // 	txns := []uint64{1024}
-	txns := []uint64{512}
+	txns := []uint64{1024}
 
 	for loop := range ell {
 		for iTxn := range txns {
