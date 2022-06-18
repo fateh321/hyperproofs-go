@@ -152,6 +152,7 @@ func benchmarkVCS(L uint8, txn uint64, DoAgg bool, Micro bool, b *testing.B) {
 
 		b.Run(fmt.Sprintf("%d/AggregateVerify;%d", L, txn), func(b *testing.B) {
 			b.ResetTimer()
+			start := time.Now()
 			for bn := 0; bn < b.N; bn++ {
 				b.StopTimer()
 				aggProof, aggProofs = aggProofs[0], aggProofs[1:]
@@ -161,6 +162,8 @@ func benchmarkVCS(L uint8, txn uint64, DoAgg bool, Micro bool, b *testing.B) {
 					b.Errorf("Aggregation failed")
 				}
 			}
+			elapsed := time.Since(start)
+            fmt.Println(b.N,"aggregation verify took time", elapsed)
 		})
 	}
 

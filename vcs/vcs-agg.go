@@ -160,3 +160,53 @@ func (vcs *VCS) AggVerify(proof batch.Proof, digest mcl.G1, indexVec []uint64, a
 	// status := vcs.aggVerifier.Verify(proof, P, Q, B)
 	return status
 }
+// Aggregation where each digest is different
+func (vcs *VCS) AggVerifyMul(proof batch.Proof, digest[]mcl.G1, indexVec []uint64, a_i []mcl.Fr) bool {
+
+	txnLimit := int(vcs.TxnLimit)
+	L := int(vcs.L)
+
+	if len(indexVec) != txnLimit || len(a_i) != txnLimit {
+		panic("AggProof: Vectors are not of the expected size")
+	}
+
+	P := make([]mcl.G1, txnLimit)
+	Q := make([]mcl.G2, txnLimit)
+	var p mcl.G1 // temp variables
+
+	for t := range a_i {
+		mcl.G1Mul(&p, &vcs.G, &a_i[t])
+		mcl.G1Sub(&p, &digest[t], &p)
+		P[t] = p
+		Q[t] = vcs.H
+	}
+
+	pPad := make([]mcl.G1, vcs.nDiff)
+	qPad := make([]mcl.G2, vcs.nDiff)
+	P = append(P, pPad...)
+	Q = append(Q, qPad...)
+
+	var B []mcl.G2
+	var binary []bool
+	b := make([]mcl.G2, vcs.L)
+	for t := range indexVec {
+		binary = ToBinary(indexVec[t], vcs.L)
+		for i := 0; i < L; i++ {
+			if binary[i] == true {
+				// mcl.G2Sub(&b[i], &vcs.VRK[i], &vcs.H)
+				b[i] = vcs.VRKSubOneRev[i]
+			} else {
+				b[i] = vcs.VRK[i]
+			}
+		}
+		B = append(B, b...)
+	}
+	bPad := make([]mcl.G2, vcs.mnDiff)
+	B = append(B, bPad...)
+
+	// fmt.Println("Agg Verifier", L, vcs.N, len(P))
+	vcs.aggVerifier.Init(uint32(L), uint32(vcs.TxnLimit+uint64(vcs.nDiff)), vcs.MN, vcs.ck.W, &vcs.kzg1, &vcs.kzg2, P, Q, B)
+	status := vcs.aggVerifier.VerifyEdrax(proof)
+	// status := vcs.aggVerifier.Verify(proof, P, Q, B)
+	return status
+}

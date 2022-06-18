@@ -2,7 +2,7 @@ package vcs
 
 import (
 	"math/rand"
-
+//     u "github.com/holiman/uint256"
 	"github.com/alinush/go-mcl"
 )
 
@@ -64,11 +64,13 @@ func (vcs *VCS) GenProofsTreeFake(count uint64) (mcl.G1, []uint64, []mcl.Fr, map
 	for k := uint64(0); k < count; k++ {
 		var id uint64
 		var rhs mcl.Fr
+// 		var zero1 = u.NewInt(uint64(0))
+// 		zero2 := zero1.Bytes32()
 		id = indexVec[k]
 		binary := ToBinary(id, vcs.L)
 		proofs := make([]mcl.G1, vcs.L)
 		rhs.SetInt64(0)
-
+//         rhs.SetLittleEndian(zero2[:])
 		for l := uint8(0); l < vcs.L; l++ {
 			id = id >> 1
 			q, ok := fakeQTree[vcs.L-l-1][id]
