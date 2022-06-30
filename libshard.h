@@ -69,9 +69,13 @@ extern "C" {
 #endif
 
 extern GoInt64 initVc(GoUint64 round);
+extern GoInt64 prevDigestResetVc();
 extern GoInt64 pushAddressDeltaVc(GoUint64 address, GoString deltaString, GoUint64 shard);
+extern GoInt64 resetAddressDeltaVc(GoUint64 shard);
 extern GoInt64 pushAddressCommitVc(GoUint64 address, GoUint64 shard);
+extern GoInt64 resetAddressCommitVc(GoUint64 shard);
 extern GoInt64 pushAddressBalanceVerifyVc(GoUint64 address, GoString balanceString, GoUint64 shard);
+extern GoInt64 resetAddressBalanceVerifyVc(GoUint64 shard);
 
 /* Return type for aggVc */
 struct aggVc_return {
@@ -80,6 +84,7 @@ struct aggVc_return {
 };
 extern struct aggVc_return aggVc(GoUint64 nativeShard);
 extern GoInt64 commitVc(GoUint64 nativeShard, GoUint64 round);
+extern GoInt64 updateShardProofTreeVc(GoUint64 nativeShard);
 extern GoUint8 verifyProofVc(GoString proofString, GoUint64 shard, GoUint64 round);
 extern char* demoProof();
 extern GoUint8 demoVerify(GoString proofString);

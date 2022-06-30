@@ -17,12 +17,18 @@ import (
 
 //VCS used to store proofs
 var vc = vcs.VCS{}
-var shardNum = uint64(1)
+var shardNum = uint64(2)
 var beginRound uint64
 var digest = make([]map[uint64]mcl.G1, shardNum)
+var prevDigest = make([]mcl.G1, shardNum)
+// var prePrevDigest = make([]mcl.G1, shardNum)
 // these two slices should be of same length for every shard
 var addressBuffer = make([][]uint64, shardNum)
 var deltaBuffer = make([][]mcl.Fr, shardNum)
+
+var addressBuffer2 []uint64
+var deltaBuffer2 []mcl.Fr
+
 //this slice keeps track of the addresses and balances for which we have to create and submit AggProof
 var addressCommitBuffer = make([][]uint64, shardNum)
 // var balanceCommitBuffer = make([][]mcl.Fr, shardNum)
@@ -37,7 +43,7 @@ func initVc(round uint64) int64{
     L := uint8(16)
     // N := uint64(1) << L
 
-    K := 512 // Number of transactions, ideally 1024
+    K := 16 // Number of transactions, ideally 1024
     txnLimit := uint64(K)
     vc.KeyGenLoad(16, L, "/home/srisht/libhyper/hyperproofs-go/pkvk-17", txnLimit)
     a := make([]mcl.Fr, vc.N)
@@ -45,19 +51,41 @@ func initVc(round uint64) int64{
     for i := uint64(0); i < shardNum; i++ {
         digest[i] = make(map[uint64]mcl.G1)
         digest[i][round] = vc.Commit(a, uint64(vc.L))
+        prevDigest[i] = digest[i][round]
+        // prevPrevDigest[i] = digest[i][round]
     }
 
     return 0
 }
 
+//export prevDigestResetVc
+func prevDigestResetVc() int64{
+    for i := uint64(0); i < shardNum; i++ {
+        prevDigest[i] = digest[i][uint64(0)]
+        // prevPrevDigest[i] = digest[i][uint64(0)]
+    }
+
+    return 0
+}
 
 //export pushAddressDeltaVc
 func pushAddressDeltaVc(address uint64, deltaString string, shard uint64) int64{
-    delta := []byte(deltaString)
+    // delta := []byte(deltaString)
     var delta_f mcl.Fr
-    delta_f.SetLittleEndian(delta)
-    addressBuffer[shard] = append(addressBuffer[shard], address)
-    deltaBuffer[shard] = append(deltaBuffer[shard], delta_f)
+    // fmt.Println("byte version looks like", []byte(uint64(12)))
+    delta_f.SetString(deltaString, 10)
+    if !delta_f.IsZero(){
+        addressBuffer[shard] = append(addressBuffer[shard], address)
+        deltaBuffer[shard] = append(deltaBuffer[shard], delta_f)    
+    }
+    
+    return 0
+}
+
+//export resetAddressDeltaVc
+func resetAddressDeltaVc(shard uint64) int64{
+    addressBuffer[shard] = nil
+    deltaBuffer[shard] = nil
     return 0
 }
 
@@ -67,17 +95,30 @@ func pushAddressCommitVc(address uint64, shard uint64) int64{
     return 0
 }
 
+//export resetAddressCommitVc
+func resetAddressCommitVc(shard uint64) int64{
+    addressCommitBuffer[shard] = nil
+    return 0
+}
+
 //export pushAddressBalanceVerifyVc
 func pushAddressBalanceVerifyVc(address uint64, balanceString string, shard uint64) int64{
-    balance := []byte(balanceString)
+    // balance := []byte(balanceString)
     var balance_f mcl.Fr
-    balance_f.SetLittleEndian(balance)
+    balance_f.SetString(balanceString,10)
     verifyBalanceBuffer[shard] = append(verifyBalanceBuffer[shard], balance_f)
     verifyAddressBuffer[shard] = append(verifyAddressBuffer[shard], address)
     return 0
 }
+//export resetAddressBalanceVerifyVc
+func resetAddressBalanceVerifyVc(shard uint64) int64{
+    verifyBalanceBuffer[shard] = nil
+    verifyAddressBuffer[shard] = nil
+    return 0
+}
 //export aggVc
 func aggVc(nativeShard uint64) (*C.char, bool){
+    fmt.Println("Aggregation started")
     x, y := AggAndExport(nativeShard)
     return x,y
 }
@@ -87,6 +128,7 @@ func AggAndExport(nativeShard uint64)(*C.char, bool){
     var output []byte
 
     K := uint64(len(addressCommitBuffer[nativeShard]))
+    fmt.Println("the value of addressCommitBuffer is",K)
     if K > vc.TxnLimit{
         addressCommitBuffer[nativeShard] = nil
         fmt.Println("transactions exceed limit!")
@@ -99,8 +141,8 @@ func AggAndExport(nativeShard uint64)(*C.char, bool){
         if i < K {
             proofVec[i] = vc.GetProofPath(addressCommitBuffer[nativeShard][i])
         } else {
-            proofVec[i] = vc.GetProofPath(uint64(0))
-            addressCommitBuffer[nativeShard] = append(addressCommitBuffer[nativeShard], uint64(0))
+            proofVec[i] = vc.GetProofPath(uint64(5))
+            addressCommitBuffer[nativeShard] = append(addressCommitBuffer[nativeShard], uint64(5))
         }
 
     }
@@ -119,8 +161,15 @@ func AggAndExport(nativeShard uint64)(*C.char, bool){
 }
 //export commitVc
 func commitVc(nativeShard uint64, round uint64)int64{
+    // updateShardProofTree(nativeShard)
+    updateDigest(nativeShard, round)
+    return 0
+}
+
+//export updateShardProofTreeVc
+func updateShardProofTreeVc(nativeShard uint64)int64{
+    fmt.Println("yello")
     updateShardProofTree(nativeShard)
-    updateDigest(round)
     return 0
 }
 
@@ -154,13 +203,16 @@ func verifyProofVc (proofString string, shard uint64, round uint64) bool {
         return false
     }
     for i := K; i<vc.TxnLimit; i++{
-        var temp mcl.Fr
-        temp.SetInt64(int64(0))
-        verifyAddressBuffer[shard] = append(verifyAddressBuffer[shard],uint64(0))
-        verifyBalanceBuffer[shard] = append(verifyBalanceBuffer[shard],temp)
+        // temp := []byte("1")
+        var temp_f mcl.Fr
+        temp_f.SetInt64(int64(0))
+        verifyAddressBuffer[shard] = append(verifyAddressBuffer[shard],uint64(5))
+        verifyBalanceBuffer[shard] = append(verifyBalanceBuffer[shard],temp_f)
 
     }
-    result := vc.AggVerify(finalProof, digest[shard][round], verifyAddressBuffer[shard], verifyBalanceBuffer[shard])
+    fmt.Println("verify address buffer is",verifyAddressBuffer[shard])
+    fmt.Println("verify balance buffer is",verifyBalanceBuffer[shard])
+    result := vc.AggVerify(finalProof, prevDigest[shard], verifyAddressBuffer[shard], verifyBalanceBuffer[shard])
     verifyAddressBuffer[shard] = nil
     verifyBalanceBuffer[shard] = nil
     return result
@@ -226,9 +278,13 @@ func demoVerify(proofString string)bool{
 //first update proof tree
 //internal function
 func updateShardProofTree(nativeShard uint64){
-    if len(addressBuffer[nativeShard])==len(deltaBuffer[nativeShard]) {
-        if len(deltaBuffer[nativeShard]) > 0 {
-            vc.UpdateProofTreeBulk(addressBuffer[nativeShard], deltaBuffer[nativeShard])
+    if len(addressBuffer2)==len(deltaBuffer2) {
+        fmt.Println("length of addressBuffer2 is", len(deltaBuffer2))
+        if len(deltaBuffer2) > 0 {
+            fmt.Println("addresses being updated in tree are ", deltaBuffer2)
+            vc.UpdateProofTreeBulk(addressBuffer2, deltaBuffer2)
+            addressBuffer2 = nil 
+            deltaBuffer2 = nil 
         }
 
     } else {
@@ -237,13 +293,23 @@ func updateShardProofTree(nativeShard uint64){
 }
 //then update all the digests and flush the buffer
 //internal function
-func updateDigest(round uint64) {
+func updateDigest(nativeShard uint64, round uint64) {
+    fmt.Println("***************updating digest*********")
+    //first, drain the native shard buffer in a separate buffer
+    fmt.Println("length of addressBuffer2 before append is", len(addressBuffer2))
+    addressBuffer2 = append(addressBuffer2, addressBuffer[nativeShard]...)
+    deltaBuffer2 = append(deltaBuffer2, deltaBuffer[nativeShard]...)
+    fmt.Println("length of addressBuffer2 after append is", len(addressBuffer2))
     for i := uint64(0); i < shardNum; i++ {
         if len(addressBuffer[i])==len(deltaBuffer[i])  {
+            prevDigest[i] = digest[i][round]
             if len(deltaBuffer[i]) > 0 {
                 if round > beginRound{
                     digest[i][round] = vc.UpdateComVec(digest[i][round-1], addressBuffer[i], deltaBuffer[i])
                 } else{
+                    // prevPrevDigest[i] = prevDigest[i]
+                    fmt.Println("addressBuffer for update digest looks like", addressBuffer)
+                    // prevDigest[i] = digest[i][round]
                     digest[i][round] = vc.UpdateComVec(digest[i][round], addressBuffer[i], deltaBuffer[i])
                 }
 

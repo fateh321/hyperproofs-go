@@ -24,8 +24,11 @@ func main() {
 	L := uint8(17)
 	_ = hyperGenerateKeys(L, false) // Uncomment this to generate UPK for a specific ell.
 
-	L = uint8(30)
-	_ = hyperGenerateKeys(L, true) // Uncomment this to generate UPK for a specific ell.
+	L = uint8(20)
+	_ = hyperGenerateKeys(L, false) // Uncomment this to generate UPK for a specific ell.
+
+	// L = uint8(30)
+	// _ = hyperGenerateKeys(L, true) // Uncomment this to generate UPK for a specific ell.
 
 	// Benchmark()
 }
