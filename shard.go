@@ -17,7 +17,7 @@ import (
 
 //VCS used to store proofs
 var vc = vcs.VCS{}
-var shardNum = uint64(2)
+var shardNum = uint64(4)
 var beginRound uint64
 var digest = make([]map[uint64]mcl.G1, shardNum)
 var prevDigest = make([]mcl.G1, shardNum)
@@ -40,12 +40,12 @@ var verifyBalanceBuffer = make([][]mcl.Fr, shardNum)
 func initVc(round uint64) int64{
     beginRound = round
     fmt.Println("Hello, go-World!")
-    L := uint8(16)
+    L := uint8(18)
     // N := uint64(1) << L
 
-    K := 16 // Number of transactions, ideally 1024
+    K := 256 // Number of transactions, ideally 1024
     txnLimit := uint64(K)
-    vc.KeyGenLoad(16, L, "/home/srisht/libhyper/hyperproofs-go/pkvk-17", txnLimit)
+    vc.KeyGenLoad(16, L, "/home/srisht/libhyper/hyperproofs-go/pkvk-18", txnLimit)
     a := make([]mcl.Fr, vc.N)
     vc.OpenAll(a)
     for i := uint64(0); i < shardNum; i++ {

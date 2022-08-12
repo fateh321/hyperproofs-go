@@ -4,7 +4,7 @@ import "C"
 import (
 	// "flag"
 	"fmt"
-	"sync"
+	// "sync"
 	// "testing"
 	// "time"
 
@@ -207,19 +207,19 @@ func DeserializeBatchProof(input SerialBatchProof) (batch.Proof, error){
 func main() {
     fmt.Println("Hello, go-World!")
     var vc = vcs.VCS{}
-    L := uint8(16)
+    L := uint8(22)
     // N := uint64(1) << L
 
-    K := 16 // Number of transactions
+    K := 1024 // Number of transactions
     txnLimit := uint64(K)
-    vc.KeyGenLoad(16, L, "/home/srisht/junk/shard/hyperproofs-go/pkvk-17", txnLimit)
+    vc.KeyGenLoad(16, L, "/home/srisht/libhyper/hyperproofs-go/pkvk-22", txnLimit)
     a := make([]mcl.Fr, vc.N)
     x := int64(0)
     var x_f mcl.Fr
     x_f.SetInt64(x)
     fmt.Println("array is empty",a[1].IsEqual(&x_f))
     vc.OpenAll(a)
-    digest := vc.Commit(a, 16)
+    digest := vc.Commit(a, uint64(vc.L))
 //     fmt.Println("can we retrieve commitment",digest.IsEqual(&vc.ProofTree[1][0]))
 
 //     updateindex := uint64(10)
@@ -282,23 +282,23 @@ func main() {
 //     pv[1] = vc.GetProofPath(updateindex2)
 //     digestVec = append(digestVec[:0], digestVec[1:]...)
     aggProof := vc.AggProve(updateindex2, proofVec)
-    var wg sync.WaitGroup
-    wg.Add(1)
-    var result bool
-    go func(){
-        result = vc.AggVerify(aggProof, digestVec[K], updateindex2, delta_f2)
-        defer wg.Done()
-    }()
-    var aggProof2 batch.Proof
-    wg.Add(1)
-    go func(){
-        aggProof2 = vc.AggProve(updateindex2, proofVec)
-        defer wg.Done()
-    }()
+    // var wg sync.WaitGroup
+    // wg.Add(1)
+    // var result bool
+    // go func(){
+    //     result = vc.AggVerify(aggProof, digestVec[K], updateindex2, delta_f2)
+    //     defer wg.Done()
+    // }()
+    // var aggProof2 batch.Proof
+    // wg.Add(1)
+    // go func(){
+    //     aggProof2 = vc.AggProve(updateindex2, proofVec)
+    //     defer wg.Done()
+    // }()
 
-    wg.Wait()
-    result2 := vc.AggVerify(aggProof2, digestVec[K], updateindex2, delta_f2)
-    fmt.Println("verify before:",result, result2)
+    // wg.Wait()
+    // result2 := vc.AggVerify(aggProof2, digestVec[K], updateindex2, delta_f2)
+    // fmt.Println("verify before:",result, result2)
 
     b := SerializeBatchProof(aggProof)
     bj, errj := json.Marshal(b)
@@ -307,26 +307,26 @@ func main() {
     }
     fmt.Println("length of proof is",len(bj))
 //     dec := gob.NewDecoder(&network)
-    var xxj SerialBatchProof
+    // var xxj SerialBatchProof
 
-    errj = json.Unmarshal(bj, &xxj)
+    // errj = json.Unmarshal(bj, &xxj)
 
-    xx, err := DeserializeBatchProof(xxj)
-    if err != nil {
-        fmt.Println("fuck2",err)
-    }
-    fmt.Println("verify after:",vc.AggVerify(xx, digestVec[K], updateindex2, delta_f2))
+    // xx, err := DeserializeBatchProof(xxj)
+    // if err != nil {
+    //     fmt.Println("fuck2",err)
+    // }
+    // fmt.Println("verify after:",vc.AggVerify(xx, digestVec[K], updateindex2, delta_f2))
 }
 
 func main2(){
     fmt.Println("Hello, go-World!")
     var vc = vcs.VCS{}
-    L := uint8(16)
+    L := uint8(18)
     // N := uint64(1) << L
 
-    K := 16 // Number of transactions
+    K := 256 // Number of transactions
     txnLimit := uint64(K)
-    vc.KeyGenLoad(16, L, "/home/srisht/junk/shard/hyperproofs-go/pkvk-17", txnLimit)
+    vc.KeyGenLoad(16, L, "/home/srisht/junk/shard/hyperproofs-go/pkvk-18", txnLimit)
     a := make([]mcl.Fr, vc.N)
     x := int64(0)
     var x_f mcl.Fr
