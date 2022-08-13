@@ -40,7 +40,7 @@ var verifyBalanceBuffer = make([][]mcl.Fr, shardNum)
 func initVc(round uint64) int64{
     beginRound = round
     fmt.Println("Hello, go-World!")
-    L := uint8(18)
+    L := uint8(24)
     // N := uint64(1) << L
 
     K := 1024 // Number of transactions, ideally 1024
