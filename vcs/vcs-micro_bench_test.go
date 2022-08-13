@@ -52,7 +52,7 @@ func benchmarkVCS(L uint8, txn uint64, DoAgg bool, Micro bool, b *testing.B) {
 	var basecost int
 	vcs := VCS{}
 
-	vcs.KeyGenLoadFake(16, L, "../pkvk-30", txn)
+	vcs.KeyGenLoadFake(16, L, "../pkvk-24", txn)
 	digest, indexVec, valueVec, upk_db, proofVec, proofTree := vcs.GenProofsTreeFake(txn)
 
 	deltaVec := make([]mcl.Fr, len(indexVec))
