@@ -129,7 +129,7 @@ func AggAndExport(nativeShard uint64)(*C.char, bool){
     var output []byte
 
     K := uint64(len(addressCommitBuffer[nativeShard]))
-    fmt.Println("the value of addressCommitBuffer is",K)
+    // fmt.Println("the value of addressCommitBuffer is",K)
     if K > vc.TxnLimit{
         addressCommitBuffer[nativeShard] = nil
         fmt.Println("transactions exceed limit!")
@@ -169,7 +169,7 @@ func commitVc(nativeShard uint64, round uint64)int64{
 
 //export updateShardProofTreeVc
 func updateShardProofTreeVc(nativeShard uint64)int64{
-    fmt.Println("yello")
+    // fmt.Println("yello")
     updateShardProofTree(nativeShard)
     return 0
 }
@@ -211,8 +211,8 @@ func verifyProofVc (proofString string, shard uint64, round uint64) bool {
         verifyBalanceBuffer[shard] = append(verifyBalanceBuffer[shard],temp_f)
 
     }
-    fmt.Println("verify address buffer is",verifyAddressBuffer[shard])
-    fmt.Println("verify balance buffer is",verifyBalanceBuffer[shard])
+    // fmt.Println("verify address buffer is",verifyAddressBuffer[shard])
+    // fmt.Println("verify balance buffer is",verifyBalanceBuffer[shard])
     result := vc.AggVerify(finalProof, prevDigest[shard], verifyAddressBuffer[shard], verifyBalanceBuffer[shard])
     verifyAddressBuffer[shard] = nil
     verifyBalanceBuffer[shard] = nil
@@ -280,9 +280,9 @@ func demoVerify(proofString string)bool{
 //internal function
 func updateShardProofTree(nativeShard uint64){
     if len(addressBuffer2)==len(deltaBuffer2) {
-        fmt.Println("length of addressBuffer2 is", len(deltaBuffer2))
+        // fmt.Println("length of addressBuffer2 is", len(deltaBuffer2))
         if len(deltaBuffer2) > 0 {
-            fmt.Println("addresses being updated in tree are ", deltaBuffer2)
+            // fmt.Println("addresses being updated in tree are ", deltaBuffer2)
             vc.UpdateProofTreeBulk(addressBuffer2, deltaBuffer2)
             addressBuffer2 = nil 
             deltaBuffer2 = nil 
@@ -297,10 +297,10 @@ func updateShardProofTree(nativeShard uint64){
 func updateDigest(nativeShard uint64, round uint64) {
     fmt.Println("***************updating digest*********")
     //first, drain the native shard buffer in a separate buffer
-    fmt.Println("length of addressBuffer2 before append is", len(addressBuffer2))
+    // fmt.Println("length of addressBuffer2 before append is", len(addressBuffer2))
     addressBuffer2 = append(addressBuffer2, addressBuffer[nativeShard]...)
     deltaBuffer2 = append(deltaBuffer2, deltaBuffer[nativeShard]...)
-    fmt.Println("length of addressBuffer2 after append is", len(addressBuffer2))
+    // fmt.Println("length of addressBuffer2 after append is", len(addressBuffer2))
     for i := uint64(0); i < shardNum; i++ {
         if len(addressBuffer[i])==len(deltaBuffer[i])  {
             prevDigest[i] = digest[i][round]
@@ -309,7 +309,7 @@ func updateDigest(nativeShard uint64, round uint64) {
                     digest[i][round] = vc.UpdateComVec(digest[i][round-1], addressBuffer[i], deltaBuffer[i])
                 } else{
                     // prevPrevDigest[i] = prevDigest[i]
-                    fmt.Println("addressBuffer for update digest looks like", addressBuffer)
+                    // fmt.Println("addressBuffer for update digest looks like", addressBuffer)
                     // prevDigest[i] = digest[i][round]
                     digest[i][round] = vc.UpdateComVec(digest[i][round], addressBuffer[i], deltaBuffer[i])
                 }
