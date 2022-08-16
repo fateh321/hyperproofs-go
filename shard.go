@@ -40,13 +40,15 @@ var verifyBalanceBuffer = make([][]mcl.Fr, shardNum)
 func initVc(round uint64) int64{
     beginRound = round
     fmt.Println("Hello, go-World!")
-    L := uint8(24)
+    L := uint8(16)
+    // L := uint8(18)
     // N := uint64(1) << L
 
     K := 1024 // Number of transactions, ideally 1024
+    // K := 256
     txnLimit := uint64(K)
     // vc.KeyGenLoad(16, L, "/home/srisht/libhyper/hyperproofs-go/pkvk-18", txnLimit)
-    vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-24", txnLimit)
+    vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-17", txnLimit)
     a := make([]mcl.Fr, vc.N)
     vc.OpenAll(a)
     for i := uint64(0); i < shardNum; i++ {
