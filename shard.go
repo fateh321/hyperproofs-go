@@ -44,7 +44,7 @@ func initVc(round uint64) int64{
     // L := uint8(18)
     // N := uint64(1) << L
 
-    K := 2048 // Number of transactions, ideally 1024
+    K := 1024 // Number of transactions, ideally 1024
     // K := 256
     txnLimit := uint64(K)
     // vc.KeyGenLoad(16, L, "/home/srisht/libhyper/hyperproofs-go/pkvk-18", txnLimit)
