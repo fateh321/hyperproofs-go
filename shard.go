@@ -282,7 +282,7 @@ func demoVerify(proofString string)bool{
 //internal function
 func updateShardProofTree(nativeShard uint64){
     if len(addressBuffer2)==len(deltaBuffer2) {
-        // fmt.Println("length of addressBuffer2 is", len(deltaBuffer2))
+        fmt.Println("length of addressBuffer2 is", len(deltaBuffer2))
         if len(deltaBuffer2) > 0 {
             // fmt.Println("addresses being updated in tree are ", deltaBuffer2)
             vc.UpdateProofTreeBulk(addressBuffer2, deltaBuffer2)
