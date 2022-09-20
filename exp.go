@@ -75,6 +75,31 @@ import (
 // 	return 0
 //
 // }
+type SerialSingleProof struct {
+    proof [][]byte
+}
+func SerializeSingleProof(input []mcl.G1) SerialSingleProof{
+    output := SerialSingleProof {}
+    len := len(input)
+    proof := make([][]byte,len)
+    for i:=0; i<len; i++{
+        proof[i] = input[i].Serialize()
+    }
+    output.proof = proof
+    return output
+}
+
+func DeserializeSingleProof(input SerialSingleProof) ([]mcl.G1, error){
+        len := len(input.proof)
+        output := make([]mcl.G1, len)
+        for i:=0; i<len; i++{
+            err := output[i].Deserialize(input.proof[i])
+            if err != nil {
+                return output,err
+            }
+        }
+        return output, nil
+}
 type SerialBatchProof struct {
     T []byte
     GipaKzgProofL [][][]byte
@@ -204,7 +229,7 @@ func DeserializeBatchProof(input SerialBatchProof) (batch.Proof, error){
     return output,nil
 
 }
-func main() {
+func main1() {
     fmt.Println("Hello, go-World!")
     var vc = vcs.VCS{}
     L := uint8(22)
@@ -361,3 +386,53 @@ func main2(){
 //
 }
 
+func main(){
+    fmt.Println("Hello, go-World!")
+    var vc = vcs.VCS{}
+    L := uint8(24)
+    // N := uint64(1) << L
+
+    K := 2048 // Number of transactions
+    txnLimit := uint64(K)
+    vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-24", txnLimit)
+    a := make([]mcl.Fr, vc.N)
+    for i := 0; i<int(vc.N); i++{
+        x := int64(100000000)
+        var x_f mcl.Fr
+        x_f.SetInt64(x)
+        a[i] = x_f
+    }
+    vc.OpenAll(a)
+    digest := vc.Commit(a, 16)
+    proof := vc.GetProofPath(uint64(3))
+    serialSingleProof := SerializeSingleProof(proof)
+    byteSingleProof, err := json.Marshal(serialSingleProof)
+    if err != nil {
+        fmt.Println("fuck1",err)
+    }
+    fmt.Println("length of single proof is",len(byteSingleProof))
+    var decodeSingleProofByte SerialSingleProof
+    err = json.Unmarshal(byteSingleProof, &decodeSingleProofByte)
+    decodeSingleProof, err1 := DeserializeSingleProof(decodeSingleProofByte)
+    if err1 != nil {
+        fmt.Println("fuck2",err1)
+    }
+    x := int64(100000000)
+    var x_f mcl.Fr
+    x_f.SetInt64(x)
+    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, decodeSingleProof))
+    updateindex:= make([]uint64,2048)
+    proofVec := make([][]mcl.G1, K)
+    for i := 0; i<K; i++{
+        updateindex[i] = uint64(i)
+        proofVec[i] = vc.GetProofPath(updateindex[i])
+    }
+    aggProof := vc.AggProve(updateindex, proofVec)
+    b := SerializeBatchProof(aggProof)
+    bj, errj := json.Marshal(b)
+    if errj != nil {
+        fmt.Println("fuck1",errj)
+    }
+    fmt.Println("length of proof is",len(bj))
+
+}
