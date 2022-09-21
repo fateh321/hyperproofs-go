@@ -78,22 +78,20 @@ import (
 type SerialSingleProof struct {
     proof [][]byte
 }
-func SerializeSingleProof(input []mcl.G1) SerialSingleProof{
-    output := SerialSingleProof {}
+func SerializeSingleProof(input []mcl.G1) [][]byte{
     len1 := len(input)
     proof1 := make([][]byte,len1)
     for i:=0; i<len1; i++{
         proof1[i] = input[i].Serialize()
     }
-    output.proof = proof1
-    return output
+    return proof1
 }
 
-func DeserializeSingleProof(input SerialSingleProof) ([]mcl.G1, error){
-        len := len(input.proof)
+func DeserializeSingleProof(input [][]byte) ([]mcl.G1, error){
+        len := len(input)
         output := make([]mcl.G1, len)
         for i:=0; i<len; i++{
-            err := output[i].Deserialize(input.proof[i])
+            err := output[i].Deserialize(input[i])
             if err != nil {
                 return output,err
             }
