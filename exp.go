@@ -387,15 +387,15 @@ func main2(){
 func main(){
     fmt.Println("Hello, go-World!")
     var vc = vcs.VCS{}
-    L := uint8(18)
+    L := uint8(24)
     // N := uint64(1) << L
 
     K := 2048 // Number of transactions
     txnLimit := uint64(K)
-    vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-18", txnLimit)
+    vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-24", txnLimit)
     a := make([]mcl.Fr, vc.N)
     for i := 0; i<int(vc.N); i++{
-        x := int64(1000000)
+        x := int64(1000000+3)
         var x_f mcl.Fr
         x_f.SetInt64(x)
         a[i] = x_f
@@ -417,7 +417,7 @@ func main(){
     if err1 != nil {
         fmt.Println("fuck2",err1)
     }
-    x1 := int64(1000000)
+    x1 := int64(1000000+3)
     var x1_f mcl.Fr
     x1_f.SetInt64(x1)
     fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x1_f, proof))
