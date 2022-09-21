@@ -397,7 +397,7 @@ func main(){
     vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-18", txnLimit)
     a := make([]mcl.Fr, vc.N)
     for i := 0; i<int(vc.N); i++{
-        x := int64(100000000)
+        x := int64(1000000+i)
         var x_f mcl.Fr
         x_f.SetInt64(x)
         a[i] = x_f
