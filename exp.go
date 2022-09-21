@@ -417,11 +417,11 @@ func main(){
     if err1 != nil {
         fmt.Println("fuck2",err1)
     }
-    x := int64(100000000+3)
-    var x_f mcl.Fr
-    x_f.SetInt64(x)
-    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, proof))
-    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, decodeSingleProof))
+    x1 := int64(100000000+3)
+    var x1_f mcl.Fr
+    x1_f.SetInt64(x1)
+    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x1_f, proof))
+    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x1_f, decodeSingleProof))
     updateindex:= make([]uint64,2048)
     proofVec := make([][]mcl.G1, K)
     for i := 0; i<K; i++{
