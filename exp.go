@@ -420,6 +420,7 @@ func main(){
     x := int64(100000000)
     var x_f mcl.Fr
     x_f.SetInt64(x)
+    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, proof))
     fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, decodeSingleProof))
     updateindex:= make([]uint64,2048)
     proofVec := make([][]mcl.G1, K)
