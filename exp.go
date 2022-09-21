@@ -411,8 +411,8 @@ func main(){
         fmt.Println("fuck1",err)
     }
     fmt.Println("length of original proof is",len(proof))
-    fmt.Println("proof looks like",byteSingleProof)
-    fmt.Println("length of single proof is",len(byteSingleProof))
+    fmt.Println("byte proof looks like",byteSingleProof)
+    fmt.Println("single proof is",serialSingleProof1)
 //     var decodeSingleProofByte SerialSingleProof
 //     err = json.Unmarshal(byteSingleProof, &decodeSingleProofByte)
 //     decodeSingleProof, err1 := DeserializeSingleProof(decodeSingleProofByte)
