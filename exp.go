@@ -402,7 +402,9 @@ func main(){
 //         a[i] = x_f
 //     }
     vc.OpenAll(a)
+    fmt.Println("openall done")
     digest := vc.Commit(a, uint64(vc.L))
+    fmt.Println("digest done")
     proof := vc.GetProofPath(uint64(3))
     x := SerializeSingleProof(proof)
     bx, err := json.Marshal(x)
