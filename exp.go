@@ -405,14 +405,14 @@ func main(){
     vc.OpenAll(a)
 //     digest := vc.Commit(a, uint64(vc.L))
     proof := vc.GetProofPath(uint64(3))
-    serialSingleProof1 := SerializeSingleProof(proof)
-    byteSingleProof, err := json.Marshal(serialSingleProof1)
+    x := SerializeSingleProof(proof)
+    bx, err := json.Marshal(x)
     if err != nil {
         fmt.Println("fuck1",err)
     }
     fmt.Println("length of original proof is",len(proof))
-    fmt.Println("byte proof looks like",byteSingleProof)
-    fmt.Println("single proof is",serialSingleProof1)
+    fmt.Println("byte proof looks like",bx)
+    fmt.Println("single proof is",x)
 //     var decodeSingleProofByte SerialSingleProof
 //     err = json.Unmarshal(byteSingleProof, &decodeSingleProofByte)
 //     decodeSingleProof, err1 := DeserializeSingleProof(decodeSingleProofByte)
