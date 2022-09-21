@@ -394,7 +394,7 @@ func main(){
 
     K := 2048 // Number of transactions
     txnLimit := uint64(K)
-    vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-24", txnLimit)
+    vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-18", txnLimit)
     a := make([]mcl.Fr, vc.N)
     for i := 0; i<int(vc.N); i++{
         x := int64(100000000)
