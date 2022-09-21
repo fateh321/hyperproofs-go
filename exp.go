@@ -417,7 +417,7 @@ func main(){
     if err1 != nil {
         fmt.Println("fuck2",err1)
     }
-    x1 := int64(100000000+3)
+    x1 := int64(1000000+3)
     var x1_f mcl.Fr
     x1_f.SetInt64(x1)
     fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x1_f, proof))
