@@ -395,12 +395,12 @@ func main(){
     vc.KeyGenLoad(16, L, "/data/ubuntu/libhyper/hyperproofs-go/pkvk-24", txnLimit)
     fmt.Println("keygen done")
     a := make([]mcl.Fr, vc.N)
-    for i := 0; i<int(vc.N)/100000; i++{
-        x := int64(1000000+3)
-        var x_f mcl.Fr
-        x_f.SetInt64(x)
-        a[i] = x_f
-    }
+//     for i := 0; i<int(vc.N)/100000; i++{
+//         x := int64(1000000+3)
+//         var x_f mcl.Fr
+//         x_f.SetInt64(x)
+//         a[i] = x_f
+//     }
     vc.OpenAll(a)
     digest := vc.Commit(a, uint64(vc.L))
     proof := vc.GetProofPath(uint64(3))
@@ -418,7 +418,7 @@ func main(){
     if err1 != nil {
         fmt.Println("fuck2",err1)
     }
-    x1 := int64(1000000+3)
+    x1 := int64(0)
     var x1_f mcl.Fr
     x1_f.SetInt64(x1)
     fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x1_f, proof))
