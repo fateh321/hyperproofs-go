@@ -80,12 +80,12 @@ type SerialSingleProof struct {
 }
 func SerializeSingleProof(input []mcl.G1) SerialSingleProof{
     output := SerialSingleProof {}
-    len := len(input)
-    proof := make([][]byte,len)
-    for i:=0; i<len; i++{
-        proof[i] = input[i].Serialize()
+    len1 := len(input)
+    proof1 := make([][]byte,len1)
+    for i:=0; i<len1; i++{
+        proof1[i] = input[i].Serialize()
     }
-    output.proof = proof
+    output.proof = proof1
     return output
 }
 
