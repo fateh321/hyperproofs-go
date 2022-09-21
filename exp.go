@@ -401,27 +401,27 @@ func main(){
         a[i] = x_f
     }
     vc.OpenAll(a)
-//     digest := vc.Commit(a, uint64(vc.L))
+    digest := vc.Commit(a, uint64(vc.L))
     proof := vc.GetProofPath(uint64(3))
     x := SerializeSingleProof(proof)
     bx, err := json.Marshal(x)
     if err != nil {
         fmt.Println("fuck1",err)
     }
-    fmt.Println("length of original proof is",len(proof))
-    fmt.Println("byte proof looks like",bx)
-    fmt.Println("single proof is",x)
-//     var decodeSingleProofByte SerialSingleProof
-//     err = json.Unmarshal(byteSingleProof, &decodeSingleProofByte)
-//     decodeSingleProof, err1 := DeserializeSingleProof(decodeSingleProofByte)
-//     if err1 != nil {
-//         fmt.Println("fuck2",err1)
-//     }
-//     x := int64(100000000)
-//     var x_f mcl.Fr
-//     x_f.SetInt64(x)
-//     fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, proof))
-//     fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, decodeSingleProof))
+    fmt.Println("length of single proof is",len(bx))
+//     fmt.Println("byte proof looks like",bx)
+//     fmt.Println("single proof is",x)
+    var decodeSingleProofByte [][]byte
+    err = json.Unmarshal(bx, &decodeSingleProofByte)
+    decodeSingleProof, err1 := DeserializeSingleProof(decodeSingleProofByte)
+    if err1 != nil {
+        fmt.Println("fuck2",err1)
+    }
+    x := int64(100000000+3)
+    var x_f mcl.Fr
+    x_f.SetInt64(x)
+    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, proof))
+    fmt.Println("verifying single proof:",vc.Verify(digest, uint64(3), x_f, decodeSingleProof))
     updateindex:= make([]uint64,2048)
     proofVec := make([][]mcl.G1, K)
     for i := 0; i<K; i++{
