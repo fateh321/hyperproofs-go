@@ -389,7 +389,7 @@ func main2(){
 func main(){
     fmt.Println("Hello, go-World!")
     var vc = vcs.VCS{}
-    L := uint8(24)
+    L := uint8(18)
     // N := uint64(1) << L
 
     K := 2048 // Number of transactions
