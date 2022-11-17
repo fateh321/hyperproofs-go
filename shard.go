@@ -16,18 +16,31 @@ import (
 
 
 //VCS used to store proofs
+var revertState bool
 var vc = vcs.VCS{}
 var shardNum = uint64(4)
 var beginRound uint64
 var digest = make([]map[uint64]mcl.G1, shardNum)
 var prevDigest = make([]mcl.G1, shardNum)
-// var prePrevDigest = make([]mcl.G1, shardNum)
+var prevPrevDigest = make([]mcl.G1, shardNum)
 // these two slices should be of same length for every shard
 var addressBuffer = make([][]uint64, shardNum)
 var deltaBuffer = make([][]mcl.Fr, shardNum)
 
+var negAddressBuffer = make([][]uint64, shardNum)
+var negDeltaBuffer = make([][]mcl.Fr, shardNum)
+
 var addressBuffer2 []uint64
 var deltaBuffer2 []mcl.Fr
+
+var checkpointAddress0  []uint64
+var checkpointDelta0  []mcl.Fr
+
+
+var checkpointAddress1  []uint64
+var checkpointDelta1  []mcl.Fr
+
+var currentCheckpoint bool
 
 //this slice keeps track of the addresses and balances for which we have to create and submit AggProof
 var addressCommitBuffer = make([][]uint64, shardNum)
@@ -38,6 +51,8 @@ var verifyBalanceBuffer = make([][]mcl.Fr, shardNum)
 
 //export initVc
 func initVc(round uint64) int64{
+    currentCheckpoint = false
+    revertState = false
     beginRound = round
     fmt.Println("Hello, go-World!")
     L := uint8(16)
@@ -75,11 +90,15 @@ func prevDigestResetVc() int64{
 func pushAddressDeltaVc(address uint64, deltaString string, shard uint64) int64{
     // delta := []byte(deltaString)
     var delta_f mcl.Fr
+    var negDelta_f mcl.Fr
     // fmt.Println("byte version looks like", []byte(uint64(12)))
     delta_f.SetString(deltaString, 10)
+    mcl.FrNeg(&negDelta_f, &delta_f)
     if !delta_f.IsZero(){
         addressBuffer[shard] = append(addressBuffer[shard], address)
-        deltaBuffer[shard] = append(deltaBuffer[shard], delta_f)    
+        deltaBuffer[shard] = append(deltaBuffer[shard], delta_f)
+        negAddressBuffer[shard] = append(negAddressBuffer[shard], address)
+        negDeltaBuffer[shard] = append(negDeltaBuffer[shard], negDelta_f)
     }
     
     return 0
@@ -89,6 +108,8 @@ func pushAddressDeltaVc(address uint64, deltaString string, shard uint64) int64{
 func resetAddressDeltaVc(shard uint64) int64{
     addressBuffer[shard] = nil
     deltaBuffer[shard] = nil
+    negAddressBuffer[shard] = nil
+    negDeltaBuffer[shard] = nil
     return 0
 }
 
@@ -163,9 +184,9 @@ func AggAndExport(nativeShard uint64)(*C.char, bool){
 
 }
 //export commitVc
-func commitVc(nativeShard uint64, round uint64)int64{
+func commitVc(nativeShard uint64, round uint64, revert uint64)int64{
     // updateShardProofTree(nativeShard)
-    updateDigest(nativeShard, round)
+    updateDigest(nativeShard, round, revert)
     return 0
 }
 
@@ -282,10 +303,38 @@ func demoVerify(proofString string)bool{
 //internal function
 func updateShardProofTree(nativeShard uint64){
     if len(addressBuffer2)==len(deltaBuffer2) {
-        fmt.Println("length of addressBuffer2 is", len(deltaBuffer2))
+//         fmt.Println("length of addressBuffer2 is", len(deltaBuffer2))
         if len(deltaBuffer2) > 0 {
             // fmt.Println("addresses being updated in tree are ", deltaBuffer2)
-            vc.UpdateProofTreeBulk(addressBuffer2, deltaBuffer2)
+            if revertState{
+                if currentCheckpoint == true{
+                    vc.UpdateProofTreeBulk(checkpointAddress0, checkpointDelta0)
+                } else {
+                    vc.UpdateProofTreeBulk(checkpointAddress1, checkpointDelta1)
+                }
+                revertState = false
+                checkpointAddress0 = nil
+                checkpointDelta0 = nil
+                checkpointAddress1 = nil
+                checkpointDelta1 = nil
+
+            } else {
+                vc.UpdateProofTreeBulk(addressBuffer2, deltaBuffer2)
+                if currentCheckpoint == true{
+                    checkpointAddress0 = nil
+                    checkpointDelta0 = nil
+                } else {
+                    checkpointAddress1 = nil
+                    checkpointDelta1 = nil
+                }
+            }
+
+            if currentCheckpoint == true {
+                currentCheckpoint = false
+            } else {
+                currentCheckpoint = true
+            }
+
             addressBuffer2 = nil 
             deltaBuffer2 = nil 
         }
@@ -296,15 +345,30 @@ func updateShardProofTree(nativeShard uint64){
 }
 //then update all the digests and flush the buffer
 //internal function
-func updateDigest(nativeShard uint64, round uint64) {
+func updateDigest(nativeShard uint64, round uint64, revert uint64) {
     fmt.Println("***************updating digest*********")
     //first, drain the native shard buffer in a separate buffer
     // fmt.Println("length of addressBuffer2 before append is", len(addressBuffer2))
+    if revert != uint64(0){
+        revertState = true
+    }
     addressBuffer2 = append(addressBuffer2, addressBuffer[nativeShard]...)
     deltaBuffer2 = append(deltaBuffer2, deltaBuffer[nativeShard]...)
+    if currentCheckpoint == false {
+        checkpointAddress0 = append(checkpointAddress0, negAddressBuffer[nativeShard]...)
+        checkpointDelta0 = append(checkpointDelta0, negDeltaBuffer[nativeShard]...)
+    }else{
+        checkpointAddress1 = append(checkpointAddress1, negAddressBuffer[nativeShard]...)
+        checkpointDelta1 = append(checkpointDelta1, negDeltaBuffer[nativeShard]...)
+    }
     // fmt.Println("length of addressBuffer2 after append is", len(addressBuffer2))
     for i := uint64(0); i < shardNum; i++ {
         if len(addressBuffer[i])==len(deltaBuffer[i])  {
+            if revert != uint64(0){
+                digest[i][round] = prevDigest[i]
+                prevDigest[i] = prevPrevDigest[i]
+            } else{
+            prevPrevDigest[i] = prevDigest[i]
             prevDigest[i] = digest[i][round]
             if len(deltaBuffer[i]) > 0 {
                 if round > beginRound{
@@ -322,12 +386,15 @@ func updateDigest(nativeShard uint64, round uint64) {
                 }
 
             }
+            }
 
         }else{
             fmt.Println("address delta buffer not equal!")
         }
         addressBuffer[i] = nil
         deltaBuffer[i] = nil
+        negAddressBuffer[i] = nil
+        negDeltaBuffer[i] = nil
     }
 }
 
